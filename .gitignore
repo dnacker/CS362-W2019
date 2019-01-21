@@ -1,6 +1,10 @@
+# ignores for object, gcov, and executables
 *.o
 *.gcda
 *.gcno
 *.gcov
 playdom
 player
+
+# ignores for IntelliJ files
+.idea
