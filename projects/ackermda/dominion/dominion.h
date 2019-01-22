@@ -9,6 +9,7 @@
 #define MAX_PLAYERS 4
 
 #define DEBUG 0
+#define TRASH 1
 
 /* http://dominion.diehrstraits.com has card texts */
 /* http://dominion.isotropic.org has other stuff */
