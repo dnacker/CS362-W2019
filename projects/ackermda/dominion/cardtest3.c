@@ -37,24 +37,23 @@ void testCouncilRoomDrawsFourCards(struct gameState* state) {
     int expectedDeckCount = state->deckCount[currentPlayer] - 4;
     cardEffect(council_room, 0, 0, 0, state, 0, 0);
     int lastHandIndex = state->handCount[currentPlayer] - 1;
-    int actualCard1 = state->hand[lastHandIndex - 3];
-    int actualCard2 = state->hand[lastHandIndex - 2];
-    int actualCard3 = state->hand[lastHandIndex - 1];
-    int actualCard4 = state->hand[lastHandIndex];
+    int actualCard1 = state->hand[currentPlayer][lastHandIndex - 3];
+    int actualCard2 = state->hand[currentPlayer][lastHandIndex - 2];
+    int actualCard3 = state->hand[currentPlayer][lastHandIndex - 1];
+    int actualCard4 = state->hand[currentPlayer][lastHandIndex];
     int actualHandCount = state->handCount[currentPlayer];
     int actualDeckCount = state->deckCount[currentPlayer];
 
-    assertTrue(actualCard1, expectedCard1, "First Card Drawn");
-    assertTrue(actualCard2, expectedCard2, "Second Card Drawn");
-    assertTrue(actualCard3, expectedCard3, "Third Card Drawn");
-    assertTrue(actualCard4, expectedCard4, "Fourth Card Drawn");
-    assertTrue(actualHandCount, expectedHandCount, "Hand Size Increases by 4");
-    assertTrue(actualDeckCount, expectedDeckCount, "Deck Size Decreases by 4");
+    assertTrue(actualCard1, expectedCard1, "Council Room First Card Drawn");
+    assertTrue(actualCard2, expectedCard2, "Council Room Second Card Drawn");
+    assertTrue(actualCard3, expectedCard3, "Council Room Third Card Drawn");
+    assertTrue(actualCard4, expectedCard4, "Council Room Fourth Card Drawn");
+    assertTrue(actualHandCount, expectedHandCount, "Council Room Hand Size Increases by 4");
+    assertTrue(actualDeckCount, expectedDeckCount, "Council Room Deck Size Decreases by 4");
 }
 
 void testCouncilRoomIncrementsBuy(struct gameState* state) {
     int i;
-    int currentPlayer = state->whoseTurn;
     for (i = 0; i < state->numPlayers; i++) {
         state->deckCount[i] = 0;
         gainCard(duchy, state, 1, i);
@@ -65,7 +64,7 @@ void testCouncilRoomIncrementsBuy(struct gameState* state) {
     int expectedBuys = state->numBuys + 1;
     cardEffect(council_room, 0, 0, 0, state, 0, 0);
     int actualBuys = state->numBuys;
-    assertTrue(actualBuys, expectedBuys, "Buys Increments");
+    assertTrue(actualBuys, expectedBuys, "Council Room Buys Increments");
 }
 
 void testCouncilRoomDrawsOtherPlayersCards(struct gameState* state) {
@@ -88,15 +87,14 @@ void testCouncilRoomDrawsOtherPlayersCards(struct gameState* state) {
             actualHandSize = state->handCount[i];
             actualDeckSize = state->deckCount[i];
             actualCard = state->hand[i][actualHandSize - 1];
-            assertTrue(actualHandSize, expectedHandSize, "Hand Size Increases by 1");
-            assertTrue(actualDeckSize, expectedDeckSize, "Deck Size Decrements by 1");
-            assertTrue(actualCard, expectedCard, "Card Drawn");
+            assertTrue(actualHandSize, expectedHandSize, "Council Room Hand Size Increases by 1");
+            assertTrue(actualDeckSize, expectedDeckSize, "Council Room Deck Size Decrements by 1");
+            assertTrue(actualCard, expectedCard, "Council Room Card Drawn");
         }
     }
 }
 
 int main(int argc, char** argv) {
-    int i;
     struct gameState state;
     memset(&state, 0, sizeof(struct gameState));
     int cards[] = {adventurer, gardens, embargo, village, minion, mine, cutpurse, 

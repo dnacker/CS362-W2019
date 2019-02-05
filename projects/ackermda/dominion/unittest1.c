@@ -21,7 +21,7 @@
 #include "dominion_helpers.h"
 #include <string.h>
 #include <stdio.h>
-#include <assert.h>
+#include "testAssert.h"
 
 void setupDeckWithNCards(struct gameState* gameState, int cards[], int numCards) {
     int i;
@@ -75,7 +75,7 @@ void testDrawNextCardFromDeck(struct gameState* gameState) {
     int currentCardIndex = gameState->handCount[currentPlayer] - 1;
     int drawnCard = gameState->hand[currentPlayer][currentCardIndex];
     memcpy(gameState, &pre, sizeof(struct gameState));
-    assert(nextCard == drawnCard);
+    assertTrue(nextCard, drawnCard, "Draw Next Card");
 }
 
 void testDrawIncrementsHand(struct gameState* gameState) {
@@ -86,7 +86,7 @@ void testDrawIncrementsHand(struct gameState* gameState) {
     drawCard(currentPlayer, gameState);
     int postHandCount = gameState->handCount[currentPlayer];
     memcpy(gameState, &pre, sizeof(struct gameState));
-    assert(postHandCount == preHandCount + 1);
+    assertTrue(postHandCount, preHandCount + 1, "Increments Hand Size");
 }
 
 void testDrawDecrementsDeck(struct gameState* gameState) {
@@ -97,7 +97,7 @@ void testDrawDecrementsDeck(struct gameState* gameState) {
     drawCard(currentPlayer, gameState);
     int postDeckCount = gameState->deckCount[currentPlayer];
     memcpy(gameState, &pre, sizeof(struct gameState));
-    assert(postDeckCount == preDeckCount - 1);
+    assertTrue(postDeckCount, preDeckCount - 1, "Decrements Deck");
 }
 
 void testDrawShufflesEmptyDeck(struct gameState* gameState) {
@@ -109,8 +109,8 @@ void testDrawShufflesEmptyDeck(struct gameState* gameState) {
     int postDeckCount = gameState->deckCount[currentPlayer];
     int postDiscardCount = gameState->discardCount[currentPlayer];
     memcpy(gameState, &pre, sizeof(struct gameState));
-    assert(postDeckCount == preDiscardCount - 1);
-    assert(postDiscardCount == 0);
+    assertTrue(postDeckCount, preDiscardCount - 1, "Deck Size is 1 less than Pre Discard Size");
+    assertTrue(postDiscardCount, 0, "Discard Is Empty");
 }
 
 void testDrawAllCards(struct gameState* gameState) {
@@ -128,9 +128,9 @@ void testDrawAllCards(struct gameState* gameState) {
     int postDeckCount = gameState->deckCount[currentPlayer];
     int postDiscardCount = gameState->discardCount[currentPlayer];
     memcpy(gameState, &pre, sizeof(struct gameState));
-    assert(postHandCount == preHandCount + preDeckCount + preDiscardCount);
-    assert(postDeckCount == 0);
-    assert(postDiscardCount == 0);
+    assertTrue(postHandCount, preHandCount + preDeckCount + preDiscardCount, "Hand Size is Sum of all Cards");
+    assertTrue(postDeckCount, 0, "Deck Size is 0");
+    assertTrue(postDiscardCount, 0, "Discard Size is 0");
 }
 
 int main(int argc, char** argv) {

@@ -26,13 +26,13 @@ void testVillageDrawsCard(struct gameState* state) {
     int expectedHandCount = state->handCount[currentPlayer] + 1;
     int expectedDeckCount = state->deckCount[currentPlayer] - 1;
     cardEffect(village, 0, 0, 0, state, 0, 0);
-    int actualCard = state->hand[state->handCount[currentPlayer] - 1];
+    int actualCard = state->hand[currentPlayer][state->handCount[currentPlayer] - 1];
     int actualHandCount = state->handCount[currentPlayer];
     int actualDeckCount = state->deckCount[currentPlayer] - 1;
 
-    assertTrue(actualCard, expectedCard, "Draws Correct Card");
-    assertTrue(actualHandCount, expectedHandCount, "Hand Count Increments");
-    assertTrue(actualDeckCount, expectedDeckCount, "Deck Count Decrements");
+    assertTrue(actualCard, expectedCard, "Village Draws Correct Card");
+    assertTrue(actualHandCount, expectedHandCount, "Village Hand Count Increments");
+    assertTrue(actualDeckCount, expectedDeckCount, "Village Deck Count Decrements");
 }
 
 void testVillageIncrementsPlayersActions(struct gameState* state) {
@@ -42,11 +42,10 @@ void testVillageIncrementsPlayersActions(struct gameState* state) {
     int expectedActions = state->numActions + 2;
     cardEffect(village, 0, 0, 0, state, 0, 0);
     int actualActions = state->numActions;
-    assertTrue(actualActions, expectedActions, "Actions Increments by 2");
+    assertTrue(actualActions, expectedActions, "Village Actions Increments by 2");
 }
 
 int main(int argc, char** argv) {
-    int i;
     struct gameState state;
     memset(&state, 0, sizeof(struct gameState));
     int cards[] = {adventurer, gardens, embargo, village, minion, mine, cutpurse, 

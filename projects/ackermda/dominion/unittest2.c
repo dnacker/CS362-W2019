@@ -15,7 +15,7 @@
 #include "dominion_helpers.h"
 #include <string.h>
 #include <stdio.h>
-#include <assert.h>
+#include "testAssert.h"
 
 void initializeState(struct gameState* state, int numSupply, int coins, int buys) {
     int i;
@@ -30,62 +30,67 @@ void testBuyCardIsGained(struct gameState* state, int card) {
     initializeState(state, 1, 10, 1);
     int currentPlayer = state->whoseTurn;
     int preDiscardCount = state->discardCount[currentPlayer];
-    int result = buyCard(card, state);
-    int lastDiscardIndex = state->discardCount - 1;
+    buyCard(card, state);
+    int lastDiscardIndex = state->discardCount[currentPlayer] - 1;
     int cardGained = state->discard[currentPlayer][lastDiscardIndex];
-    assert(result == 0);
-    assert(card == cardGained);
-    assert(state->discardCount[currentPlayer] == preDiscardCount + 1);
+    assertTrue(card, cardGained, "Card Gained");
+    assertTrue(state->discardCount[currentPlayer], preDiscardCount + 1, "Discard Size Increments");
 }
 
 void testBuyCardDecreasesBuy(struct gameState* state, int card) {
     initializeState(state, 1, 10, 1);
     int preBuys = state->numBuys;
-    int result = buyCard(card, state);
-    assert(result == 0);
-    assert(state->numBuys == preBuys - 1);
+    buyCard(card, state);
+    assertTrue(state->numBuys, preBuys - 1, "Buy decreases");
 }
 
 void testBuyCardDecreasesCoins(struct gameState* state, int card) {
     initializeState(state, 1, 10, 1);
     int preCoins = state->coins;
-    int result = buyCard(card, state);
-    assert(result == 0);
-    assert(state->coins = preCoins - getCost(card));
+    buyCard(card, state);
+    assertTrue(state->coins, preCoins - getCost(card), "Coins decreases");
 }
 
 void testBuyCardDecreasesSupply(struct gameState* state, int card) {
     initializeState(state, 1, 10, 1);
     int preSupply = state->supplyCount[card];
-    int result = buyCard(card, state);
-    assert(result == 0);
-    assert(state->supplyCount[card] == preSupply - 1);
+    buyCard(card, state);
+    assertTrue(state->supplyCount[card], preSupply - 1, "Supply decreases");
 }
 
-void assertBuyCardFails(struct gameState* state, int card) {
+void assertBuyCardFails(struct gameState* state, int card, char* message) {
     int preSupply = state->supplyCount[card];
     int preBuys = state->numBuys;
     int preCoins = state->coins;
-    int result = buyCard(card, state);
-    assert(result == -1);
-    assert(state->numBuys == preBuys);
-    assert(state->coins == preCoins);
-    assert(state->supplyCount[card] == preSupply);
+    buyCard(card, state);
+    char buffer[256];
+    memset(buffer, 0, sizeof(buffer));
+    strcpy(buffer, message);
+    strcat(buffer, ": Buys are unchanged");
+    assertTrue(state->numBuys, preBuys, buffer);
+    memset(buffer, 0, sizeof(buffer));
+    strcpy(buffer, message);
+    strcat(buffer, ": Coins are unchanged");
+    assertTrue(state->coins,  preCoins, buffer);
+    memset(buffer, 0, sizeof(buffer));
+    strcpy(buffer, message);
+    strcat(buffer, ": Supply is unchanged");
+    assertTrue(state->supplyCount[card],  preSupply, buffer);
 }
 
 void testBuyCardFailsNoSupply(struct gameState* state, int card) {
     initializeState(state, 0, 10, 1);
-    assertBuyCardFails(state, card);
+    assertBuyCardFails(state, card, "No Supply");
 }
 
 void testBuyCardFailsNotEnoughGold(struct gameState* state, int card) {
     initializeState(state, 1, 0, 1);
-    assertBuyCardFails(state, card);
+    assertBuyCardFails(state, card, "No Coins");
 }
 
 void testBuyCardFailsNotEnoughBuys(struct gameState* state, int card) {
     initializeState(state, 1, 10, 0);
-    assertBuyCardFails(state, card);
+    assertBuyCardFails(state, card, "No Buys");
 }
 
 int main(int argc, char** argv) {
@@ -102,8 +107,10 @@ int main(int argc, char** argv) {
         testBuyCardDecreasesCoins(&gameState, i);
         testBuyCardDecreasesSupply(&gameState, i);
         testBuyCardFailsNoSupply(&gameState, i);
-        testBuyCardFailsNotEnoughGold(&gameState, i);
         testBuyCardFailsNotEnoughBuys(&gameState, i);
+        if (getCost(i) > 0) {
+            testBuyCardFailsNotEnoughGold(&gameState, i);
+        }
     }
 
     return 0;

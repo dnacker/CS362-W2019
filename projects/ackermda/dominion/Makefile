@@ -49,16 +49,16 @@ unittest3: unittest3.c dominion.o rngs.o testAssert.o
 unittest4: unittest4.c dominion.o rngs.o testAssert.o
 	gcc -o unittest4 -g  unittest4.c dominion.o rngs.o testAssert.o $(CFLAGS)
 
-cardTest1: cardtest1.c dominion.o rngs.o testAssert.o
+cardtest1: cardtest1.c dominion.o rngs.o testAssert.o
 	gcc -o cardtest1 -g  cardtest1.c dominion.o rngs.o testAssert.o $(CFLAGS)
 
-cardTest2: cardtest2.c dominion.o rngs.o testAssert.o
+cardtest2: cardtest2.c dominion.o rngs.o testAssert.o
 	gcc -o cardtest2 -g  cardtest2.c dominion.o rngs.o testAssert.o $(CFLAGS)
 
-cardTest3: cardtest3.c dominion.o rngs.o testAssert.o
+cardtest3: cardtest3.c dominion.o rngs.o testAssert.o
 	gcc -o cardtest3 -g  cardtest3.c dominion.o rngs.o testAssert.o $(CFLAGS)
 
-cardTest4: cardtest4.c dominion.o rngs.o testAssert.o
+cardtest4: cardtest4.c dominion.o rngs.o testAssert.o
 	gcc -o cardtest4 -g  cardtest4.c dominion.o rngs.o testAssert.o $(CFLAGS)
 
 clean:

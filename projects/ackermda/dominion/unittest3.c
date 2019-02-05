@@ -16,9 +16,9 @@
 #include "dominion_helpers.h"
 #include <string.h>
 #include <stdio.h>
-#include <assert.h>
+#include "testAssert.h"
 
-void initializeState(struct gameState* state, int victoryCards[], int size) {
+void initializeState(struct gameState* state) {
     int i;
     memset(state, 0, sizeof(struct gameState));
     int cards[] = {adventurer, gardens, great_hall, village, minion, mine, cutpurse, 
@@ -37,49 +37,40 @@ void resetPlayer(struct gameState* state) {
 }
 
 void testCardValueInDeck(struct gameState* state, int vals[], int card) {
-    printf("Testing card %d\n", card); fflush(stdout);
     resetPlayer(state);
     int currentPlayer = state->whoseTurn;
-    assert(gainCard(card, state, 1, currentPlayer) == 0);
+    gainCard(card, state, 1, currentPlayer);
     int actualScore = scoreFor(currentPlayer, state);
-    printf("ActualScore: %d, ExpectedScore: %d\n", actualScore, vals[card]); fflush(stdout);
-    assert(actualScore == vals[card]);
+    assertTrue(actualScore, vals[card], "Card Scored From Deck");
 }
 
 void testCardValueInHand(struct gameState* state, int vals[], int card) {
-    printf("Testing card %d\n", card); fflush(stdout);
     resetPlayer(state);
     int currentPlayer = state->whoseTurn;
     gainCard(card, state, 2, currentPlayer);
     int actualScore = scoreFor(currentPlayer, state);
-    printf("ActualScore: %d, ExpectedScore: %d\n", actualScore, vals[card]); fflush(stdout);
-    assert(actualScore == vals[card]);
+    assertTrue(actualScore, vals[card], "Card Scored From Hand");
 }
 
 void testCardValueInDiscard(struct gameState* state, int vals[], int card) {
-    printf("Testing card %d\n", card); fflush(stdout);
     resetPlayer(state);
     int currentPlayer = state->whoseTurn;
     gainCard(card, state, 0, currentPlayer);
     int actualScore = scoreFor(currentPlayer, state);
-    printf("ActualScore: %d, ExpectedScore: %d\n", actualScore, vals[card]); fflush(stdout);
-    assert(actualScore == vals[card]);
+    assertTrue(actualScore, vals[card], "Card Scored From Discard");
 }
 
 void testCardValueInAllThree(struct gameState* state, int vals[], int card) {
-    printf("Testing card %d\n", card); fflush(stdout);
     resetPlayer(state);
     int currentPlayer = state->whoseTurn;
     gainCard(card, state, 0, currentPlayer);
     gainCard(card, state, 1, currentPlayer);
     gainCard(card, state, 2, currentPlayer);
     int actualScore = scoreFor(currentPlayer, state);
-    printf("ActualScore: %d, ExpectedScore: %d\n", actualScore, 3*vals[card]); fflush(stdout);
-    assert(actualScore == 3*vals[card]);
+    assertTrue(actualScore, 3*vals[card], "Card Scores Combined");
 }
 
 void testCardValueOneOfEach(struct gameState* state, int vals[]) {
-    printf("Testing one of each"); fflush(stdout);
     resetPlayer(state);
     int currentPlayer = state->whoseTurn;
     gainCard(curse, state, 0, currentPlayer);
@@ -89,25 +80,21 @@ void testCardValueOneOfEach(struct gameState* state, int vals[]) {
     gainCard(great_hall, state, 0, currentPlayer);
     int actualScore = scoreFor(currentPlayer, state);
     int expectedScore = vals[curse] + vals[estate] + vals[duchy] + vals[province] + vals[great_hall];
-    printf("ActualScore: %d, ExpectedScore: %d\n", actualScore, expectedScore); fflush(stdout);
-    assert(actualScore == expectedScore);
+    assertTrue(actualScore, expectedScore, "One of each Kind in Discard");
 }
 
 void testGardenWorthOnePointForEveryTenCards(struct gameState* state) {
     int i, j;
-    resetPlayer(state);
     int currentPlayer = state->whoseTurn;
-    for (i = 1; i <= 19; i++) {
-        state->deckCount[currentPlayer] = 0;
-        state->handCount[currentPlayer] = 0;
-        state->discardCount[currentPlayer] = 0;
+    for (i = 1; i <= 29; i++) {
+        resetPlayer(state);
         for (j = 0; j < i; j++) {
             gainCard(copper, state, 0, currentPlayer);
         }
         gainCard(gardens, state, 0, currentPlayer);
         int actualScore = scoreFor(currentPlayer, state);
         int expectedScore = i / 10;
-        assert(actualScore == expectedScore);
+        assertTrue(actualScore, expectedScore, "Garden Scored");
     }
 }
 
@@ -121,7 +108,7 @@ int main(int argc, char** argv) {
     vals[province] = 6;
     vals[great_hall] = 1;
     int victoryCards[] = {curse, estate, duchy, province, great_hall};
-    initializeState(&state, victoryCards, 5);
+    initializeState(&state);
 
     for (i = 0; i < 5; i++) {
         testCardValueInDeck(&state, vals, victoryCards[i]);
