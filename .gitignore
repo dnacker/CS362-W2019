@@ -3,8 +3,11 @@
 *.gcda
 *.gcno
 *.gcov
+*.dSYM
 playdom
 player
+badTestDrawCard
 
-# ignores for IntelliJ files
-.idea
+# ignores for clang-format
+.clang-format
+.clang-format-all

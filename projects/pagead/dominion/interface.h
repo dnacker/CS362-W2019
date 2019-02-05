@@ -1,17 +1,15 @@
 /* 	Interactive Dominion Interface
-	
-	Sam Heinith CS362
-	1/26/2010
+
+        Sam Heinith CS362
+        1/26/2010
 */
-
-
 
 #ifndef _INTERFACE_H
 #define _INTERFACE_H
 
 #include "dominion.h"
 
-//Last card enum (Treasure map) card number plus one for the 0th card.
+// Last card enum (Treasure map) card number plus one for the 0th card.
 #define NUM_TOTAL_K_CARDS (treasure_map + 1)
 #define NUM_K_CARDS 10
 #define NUM_V_CARDS_2 8
@@ -39,7 +37,7 @@
 #define WINNER 1
 #define NOT_WINNER 0
 
-//The Game Phases
+// The Game Phases
 #define ACTION_PHASE 0
 #define BUY_PHASE 1
 #define CLEANUP_PHASE 2
@@ -48,7 +46,7 @@
 #define SILVER_VALUE 2
 #define GOLD_VALUE 3
 
-//From Dominion List Spoiler
+// From Dominion List Spoiler
 #define COPPER_COST 0
 #define SILVER_COST 3
 #define GOLD_COST 6
@@ -114,9 +112,3 @@ void printScores(struct gameState* game);
 void selectKingdomCards(int randomSeed, int kingdomCards[NUM_K_CARDS]);
 
 #endif
-
-
-
-
-
-
