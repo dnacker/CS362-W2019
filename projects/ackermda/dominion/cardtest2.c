@@ -20,7 +20,8 @@
 #include <stdio.h>
 #include "testAssert.h"
 
-void assertAdventurerDrawsFirstTwoTreasuresFromDeck(struct gameState* state, char* message) {
+int assertAdventurerDrawsFirstTwoTreasuresFromDeck(struct gameState* state, char* message) {
+    int pass = 0;
     int currentPlayer = state->whoseTurn;
     int expectedCard1 = gold;
     int expectedCard2 = silver;
@@ -28,58 +29,61 @@ void assertAdventurerDrawsFirstTwoTreasuresFromDeck(struct gameState* state, cha
     int topHandIndex = state->handCount[currentPlayer] - 1;
     int actualCard1 = state->hand[currentPlayer][topHandIndex - 1];
     int actualCard2 = state->hand[currentPlayer][topHandIndex];
-    assertTrue(actualCard1, expectedCard1, message);
-    assertTrue(actualCard2, expectedCard2, message);
+    pass += assertTrue(actualCard1, expectedCard1, message);
+    pass += assertTrue(actualCard2, expectedCard2, message);
+    return pass > 0 ? 1 : 0;
 }
 
-void testAdventurerWithTwoTreasuresInDeckWithOtherCards(struct gameState* state) {
+int testAdventurerWithTwoTreasuresInDeckWithOtherCards(struct gameState* state) {
     int currentPlayer = state->whoseTurn;
     state->deckCount[currentPlayer] = 0;
     gainCard(duchy, state, 1, currentPlayer);
     gainCard(silver, state, 1, currentPlayer);
     gainCard(estate, state, 1, currentPlayer);
     gainCard(gold, state, 1, currentPlayer);
-    assertAdventurerDrawsFirstTwoTreasuresFromDeck(state, "Adventurer Deck: Gold -> Estate -> Silver -> Duchy");
+    return assertAdventurerDrawsFirstTwoTreasuresFromDeck(state, "Adventurer Deck: Gold -> Estate -> Silver -> Duchy");
 }
 
-void testAdventurerWithThreeTreasuresInDeck(struct gameState* state) {
+int testAdventurerWithThreeTreasuresInDeck(struct gameState* state) {
     int currentPlayer = state->whoseTurn;
     state->deckCount[currentPlayer] = 0;
     gainCard(copper, state, 1, currentPlayer);
     gainCard(silver, state, 1, currentPlayer);
     gainCard(gold, state, 1, currentPlayer);
-    assertAdventurerDrawsFirstTwoTreasuresFromDeck(state, "Adventurer Deck: Gold -> Silver -> Copper");
+    return assertAdventurerDrawsFirstTwoTreasuresFromDeck(state, "Adventurer Deck: Gold -> Silver -> Copper");
 }
 
-void testAdventurerWithTreasureInDeckOneInDiscard(struct gameState* state) {
+int testAdventurerWithTreasureInDeckOneInDiscard(struct gameState* state) {
     int currentPlayer = state->whoseTurn;
     state->deckCount[currentPlayer] = 0;
     gainCard(gold, state, 1, currentPlayer);
     gainCard(silver, state, 0, currentPlayer);
-    assertAdventurerDrawsFirstTwoTreasuresFromDeck(state, "Adventurer Deck: Gold, Discard: Silver");
+    return assertAdventurerDrawsFirstTwoTreasuresFromDeck(state, "Adventurer Deck: Gold, Discard: Silver");
 }
 
-void testAdventurerWithOneTreasureInDeck(struct gameState* state) {
+int testAdventurerWithOneTreasureInDeck(struct gameState* state) {
     int currentPlayer = state->whoseTurn;
     state->deckCount[currentPlayer] = 0;
     gainCard(gold, state, 1, currentPlayer);
     gainCard(estate, state, 0, currentPlayer);
     int actualCard = state->hand[currentPlayer][state->handCount[currentPlayer] - 1];
     int expectedCard = gold;
-    assertTrue(actualCard, expectedCard, "Adventurer Deck: Copper");
+    return assertTrue(actualCard, expectedCard, "Adventurer Deck: Copper");
 }
 
 int main(int argc, char** argv) {
+    int total = 4;
+    int failed = 0;
     struct gameState state;
     memset(&state, 0, sizeof(struct gameState));
     int cards[] = {adventurer, gardens, embargo, village, minion, mine, cutpurse, 
         sea_hag, tribute, smithy};
     initializeGame(1, cards, 1, &state);
-
-    testAdventurerWithTwoTreasuresInDeckWithOtherCards(&state);
-    testAdventurerWithThreeTreasuresInDeck(&state);
-    testAdventurerWithTreasureInDeckOneInDiscard(&state);
-    testAdventurerWithOneTreasureInDeck(&state);
-
+    printf("Testing adventurer\n");
+    failed += testAdventurerWithTwoTreasuresInDeckWithOtherCards(&state);
+    failed += testAdventurerWithThreeTreasuresInDeck(&state);
+    failed += testAdventurerWithTreasureInDeckOneInDiscard(&state);
+    failed += testAdventurerWithOneTreasureInDeck(&state);
+    printf("Passed %d out of %d Tests\n\n", total - failed, total);
     return 0;
 }

@@ -19,8 +19,9 @@
 #include <stdio.h>
 #include "testAssert.h"
 
-void testCouncilRoomDrawsFourCards(struct gameState* state) {
+int testCouncilRoomDrawsFourCards(struct gameState* state) {
     int i;
+    int pass = 0;
     int currentPlayer = state->whoseTurn;
     for (i = 0; i < state->numPlayers; i++) {
         state->deckCount[i] = 0;
@@ -44,15 +45,16 @@ void testCouncilRoomDrawsFourCards(struct gameState* state) {
     int actualHandCount = state->handCount[currentPlayer];
     int actualDeckCount = state->deckCount[currentPlayer];
 
-    assertTrue(actualCard1, expectedCard1, "Council Room First Card Drawn");
-    assertTrue(actualCard2, expectedCard2, "Council Room Second Card Drawn");
-    assertTrue(actualCard3, expectedCard3, "Council Room Third Card Drawn");
-    assertTrue(actualCard4, expectedCard4, "Council Room Fourth Card Drawn");
-    assertTrue(actualHandCount, expectedHandCount, "Council Room Hand Size Increases by 4");
-    assertTrue(actualDeckCount, expectedDeckCount, "Council Room Deck Size Decreases by 4");
+    pass += assertTrue(actualCard1, expectedCard1, "council room: First Card Drawn");
+    pass += assertTrue(actualCard2, expectedCard2, "council room: Second Card Drawn");
+    pass += assertTrue(actualCard3, expectedCard3, "council room: Third Card Drawn");
+    pass += assertTrue(actualCard4, expectedCard4, "council room: Fourth Card Drawn");
+    pass += assertTrue(actualHandCount, expectedHandCount, "council room: Hand Size Increases by 4");
+    pass += assertTrue(actualDeckCount, expectedDeckCount, "council room: Deck Size Decreases by 4");
+    return pass > 0 ? 1 : 0;
 }
 
-void testCouncilRoomIncrementsBuy(struct gameState* state) {
+int testCouncilRoomIncrementsBuy(struct gameState* state) {
     int i;
     for (i = 0; i < state->numPlayers; i++) {
         state->deckCount[i] = 0;
@@ -64,10 +66,11 @@ void testCouncilRoomIncrementsBuy(struct gameState* state) {
     int expectedBuys = state->numBuys + 1;
     cardEffect(council_room, 0, 0, 0, state, 0, 0);
     int actualBuys = state->numBuys;
-    assertTrue(actualBuys, expectedBuys, "Council Room Buys Increments");
+    return assertTrue(actualBuys, expectedBuys, "council room: Buys Increments");
 }
 
-void testCouncilRoomDrawsOtherPlayersCards(struct gameState* state) {
+int testCouncilRoomDrawsOtherPlayersCards(struct gameState* state) {
+    int pass = 0;
     int i, actualHandSize, actualDeckSize, actualCard;
     for (i = 0; i < state->numPlayers; i++) {
         state->deckCount[i] = 0;
@@ -87,22 +90,26 @@ void testCouncilRoomDrawsOtherPlayersCards(struct gameState* state) {
             actualHandSize = state->handCount[i];
             actualDeckSize = state->deckCount[i];
             actualCard = state->hand[i][actualHandSize - 1];
-            assertTrue(actualHandSize, expectedHandSize, "Council Room Hand Size Increases by 1");
-            assertTrue(actualDeckSize, expectedDeckSize, "Council Room Deck Size Decrements by 1");
-            assertTrue(actualCard, expectedCard, "Council Room Card Drawn");
+            pass += assertTrue(actualHandSize, expectedHandSize, "council room: Hand Size Increases by 1");
+            pass += assertTrue(actualDeckSize, expectedDeckSize, "council room: Deck Size Decrements by 1");
+            pass += assertTrue(actualCard, expectedCard, "council room: Card Drawn");
         }
     }
+    return pass > 0 ? 1 : 0;
 }
 
 int main(int argc, char** argv) {
+    int total = 3;
+    int failed = 0;
     struct gameState state;
     memset(&state, 0, sizeof(struct gameState));
     int cards[] = {adventurer, gardens, embargo, village, minion, mine, cutpurse, 
         sea_hag, tribute, smithy};
     initializeGame(4, cards, 1, &state);
-
-    testCouncilRoomDrawsFourCards(&state);
-    testCouncilRoomIncrementsBuy(&state);
-    testCouncilRoomDrawsOtherPlayersCards(&state);
+    printf("Testing council room\n");
+    failed += testCouncilRoomDrawsFourCards(&state);
+    failed += testCouncilRoomIncrementsBuy(&state);
+    failed += testCouncilRoomDrawsOtherPlayersCards(&state);
+    printf("Passed %d out of %d Tests\n\n", total - failed, total);
     return 0;
 }

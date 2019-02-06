@@ -36,41 +36,41 @@ void resetPlayer(struct gameState* state) {
     state->discardCount[currentPlayer] = 0;
 }
 
-void testCardValueInDeck(struct gameState* state, int vals[], int card) {
+int testCardValueInDeck(struct gameState* state, int vals[], int card) {
     resetPlayer(state);
     int currentPlayer = state->whoseTurn;
     gainCard(card, state, 1, currentPlayer);
     int actualScore = scoreFor(currentPlayer, state);
-    assertTrue(actualScore, vals[card], "Card Scored From Deck");
+    return assertTrue(actualScore, vals[card], "scoreFor: Card Scored From Deck");
 }
 
-void testCardValueInHand(struct gameState* state, int vals[], int card) {
+int testCardValueInHand(struct gameState* state, int vals[], int card) {
     resetPlayer(state);
     int currentPlayer = state->whoseTurn;
     gainCard(card, state, 2, currentPlayer);
     int actualScore = scoreFor(currentPlayer, state);
-    assertTrue(actualScore, vals[card], "Card Scored From Hand");
+    return assertTrue(actualScore, vals[card], "scoreFor: Card Scored From Hand");
 }
 
-void testCardValueInDiscard(struct gameState* state, int vals[], int card) {
+int testCardValueInDiscard(struct gameState* state, int vals[], int card) {
     resetPlayer(state);
     int currentPlayer = state->whoseTurn;
     gainCard(card, state, 0, currentPlayer);
     int actualScore = scoreFor(currentPlayer, state);
-    assertTrue(actualScore, vals[card], "Card Scored From Discard");
+    return assertTrue(actualScore, vals[card], "scoreFor: Card Scored From Discard");
 }
 
-void testCardValueInAllThree(struct gameState* state, int vals[], int card) {
+int testCardValueInAllThree(struct gameState* state, int vals[], int card) {
     resetPlayer(state);
     int currentPlayer = state->whoseTurn;
     gainCard(card, state, 0, currentPlayer);
     gainCard(card, state, 1, currentPlayer);
     gainCard(card, state, 2, currentPlayer);
     int actualScore = scoreFor(currentPlayer, state);
-    assertTrue(actualScore, 3*vals[card], "Card Scores Combined");
+    return assertTrue(actualScore, 3*vals[card], "scoreFor: Card Scores Combined");
 }
 
-void testCardValueOneOfEach(struct gameState* state, int vals[]) {
+int testCardValueOneOfEach(struct gameState* state, int vals[]) {
     resetPlayer(state);
     int currentPlayer = state->whoseTurn;
     gainCard(curse, state, 0, currentPlayer);
@@ -80,11 +80,12 @@ void testCardValueOneOfEach(struct gameState* state, int vals[]) {
     gainCard(great_hall, state, 0, currentPlayer);
     int actualScore = scoreFor(currentPlayer, state);
     int expectedScore = vals[curse] + vals[estate] + vals[duchy] + vals[province] + vals[great_hall];
-    assertTrue(actualScore, expectedScore, "One of each Kind in Discard");
+    return assertTrue(actualScore, expectedScore, "scoreFor: One of each Kind in Discard");
 }
 
-void testGardenWorthOnePointForEveryTenCards(struct gameState* state) {
+int testGardenWorthOnePointForEveryTenCards(struct gameState* state) {
     int i, j;
+    int pass = 0;
     int currentPlayer = state->whoseTurn;
     for (i = 1; i <= 29; i++) {
         resetPlayer(state);
@@ -94,8 +95,11 @@ void testGardenWorthOnePointForEveryTenCards(struct gameState* state) {
         gainCard(gardens, state, 0, currentPlayer);
         int actualScore = scoreFor(currentPlayer, state);
         int expectedScore = i / 10;
-        assertTrue(actualScore, expectedScore, "Garden Scored");
+        if (assertTrue(actualScore, expectedScore, "scoreFor: Garden Scored") == 1) {
+            pass = 1;
+        }
     }
+    return pass;
 }
 
 int main(int argc, char** argv) {
@@ -109,15 +113,20 @@ int main(int argc, char** argv) {
     vals[great_hall] = 1;
     int victoryCards[] = {curse, estate, duchy, province, great_hall};
     initializeState(&state);
-
+    printf("Testing scoreFor\n");
+    int failed = 0;
+    int total = 0;
     for (i = 0; i < 5; i++) {
-        testCardValueInDeck(&state, vals, victoryCards[i]);
-        testCardValueInHand(&state, vals, victoryCards[i]);
-        testCardValueInDiscard(&state, vals, victoryCards[i]);
-        testCardValueInAllThree(&state, vals, victoryCards[i]);
+        failed += testCardValueInDeck(&state, vals, victoryCards[i]);
+        failed += testCardValueInHand(&state, vals, victoryCards[i]);
+        failed += testCardValueInDiscard(&state, vals, victoryCards[i]);
+        failed += testCardValueInAllThree(&state, vals, victoryCards[i]);
+        total += 4;
     }
-    testCardValueOneOfEach(&state, vals);
-    testGardenWorthOnePointForEveryTenCards(&state);
+    failed += testCardValueOneOfEach(&state, vals);
+    failed += testGardenWorthOnePointForEveryTenCards(&state);
+    total += 2;
+    printf("Passed %d out of %d Tests\n\n", total - failed, total);
 
     return 0;
 }

@@ -18,7 +18,8 @@
 #include <stdio.h>
 #include "testAssert.h"
 
-void testVillageDrawsCard(struct gameState* state) {
+int testVillageDrawsCard(struct gameState* state) {
+    int pass = 0;
     int currentPlayer = state->whoseTurn;
     state->deckCount[currentPlayer] = 0;
     gainCard(estate, state, 1, currentPlayer);
@@ -30,29 +31,34 @@ void testVillageDrawsCard(struct gameState* state) {
     int actualHandCount = state->handCount[currentPlayer];
     int actualDeckCount = state->deckCount[currentPlayer] - 1;
 
-    assertTrue(actualCard, expectedCard, "Village Draws Correct Card");
-    assertTrue(actualHandCount, expectedHandCount, "Village Hand Count Increments");
-    assertTrue(actualDeckCount, expectedDeckCount, "Village Deck Count Decrements");
+    pass += assertTrue(actualCard, expectedCard, "village: Draws Correct Card");
+    pass += assertTrue(actualHandCount, expectedHandCount, "village: Hand Count Increments");
+    pass += assertTrue(actualDeckCount, expectedDeckCount, "village: Deck Count Decrements");
+    return pass > 0 ? 1 : 0;
 }
 
-void testVillageIncrementsPlayersActions(struct gameState* state) {
+int testVillageIncrementsPlayersActions(struct gameState* state) {
     int currentPlayer = state->whoseTurn;
     state->deckCount[currentPlayer] = 0;
     gainCard(estate, state, 1, currentPlayer);
     int expectedActions = state->numActions + 2;
     cardEffect(village, 0, 0, 0, state, 0, 0);
     int actualActions = state->numActions;
-    assertTrue(actualActions, expectedActions, "Village Actions Increments by 2");
+    return assertTrue(actualActions, expectedActions, "village: Actions Increments by 2");
 }
 
 int main(int argc, char** argv) {
+    int total = 2;
+    int failed = 0;
     struct gameState state;
     memset(&state, 0, sizeof(struct gameState));
     int cards[] = {adventurer, gardens, embargo, village, minion, mine, cutpurse, 
         sea_hag, tribute, smithy};
     initializeGame(1, cards, 1, &state);
+    printf("Testing village\n");
+    failed += testVillageDrawsCard(&state);
+    failed += testVillageIncrementsPlayersActions(&state);
 
-    testVillageDrawsCard(&state);
-    testVillageIncrementsPlayersActions(&state);
+    printf("Passed %d out of %d Tests\n\n", total - failed, total);
     return 0;
 }

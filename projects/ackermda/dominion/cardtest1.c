@@ -30,28 +30,29 @@ void resetPlayer(struct gameState* state) {
     gainCard(gold, state, 1, currentPlayer);
 }
 
-void testSmithyHandCountIncrements(struct gameState* state) {
+int testSmithyHandCountIncrements(struct gameState* state) {
     resetPlayer(state);
     int currentPlayer = state->whoseTurn;
     int preHandCount = state->handCount[currentPlayer];
     cardEffect(smithy, 0, 0, 0, state, 0, 0);
     int actualHandCount = state->handCount[currentPlayer];
     int expectedHandCount = preHandCount + 3;
-    assertTrue(actualHandCount, expectedHandCount, "Smithy Increments Hand Count");
+    return assertTrue(actualHandCount, expectedHandCount, "smithy: Increments Hand Count");
 }
 
-void testSmithyDeckCountDecrements(struct gameState* state) {
+int testSmithyDeckCountDecrements(struct gameState* state) {
     resetPlayer(state);
     int currentPlayer = state->whoseTurn;
     int preDeckCount = state->deckCount[currentPlayer];
     cardEffect(smithy, 0, 0, 0, state, 0, 0);
     int actualDeckCount = state->deckCount[currentPlayer];
     int expectedDeckCount = preDeckCount - 3;
-    assertTrue(actualDeckCount, expectedDeckCount, "Smithy Decrements Deck Count");
+    return assertTrue(actualDeckCount, expectedDeckCount, "smithy: Decrements Deck Count");
 }
 
-void testSmithyDrawsCardsFromDeck(struct gameState* state) {
+int testSmithyDrawsCardsFromDeck(struct gameState* state) {
     resetPlayer(state);
+    int pass = 0;
     int currentPlayer = state->whoseTurn;
     int topHandIndex = state->handCount[currentPlayer] - 1;
     int expectedCard1 = gold;
@@ -61,21 +62,25 @@ void testSmithyDrawsCardsFromDeck(struct gameState* state) {
     int actualCard1 = state->hand[currentPlayer][topHandIndex + 1];
     int actualCard2 = state->hand[currentPlayer][topHandIndex + 2];
     int actualCard3 = state->hand[currentPlayer][topHandIndex + 3];
-    assertTrue(actualCard1, expectedCard1, "Smithy First Card From Deck is First Card Drawn");
-    assertTrue(actualCard2, expectedCard3, "Smithy Second Card From Deck is Second Card Drawn");
-    assertTrue(actualCard3, expectedCard2, "Smithy Third Card From Deck is Third Card Drawn");
+    pass += assertTrue(actualCard1, expectedCard1, "smithy: First Card From Deck is First Card Drawn");
+    pass += assertTrue(actualCard2, expectedCard3, "smithy: Second Card From Deck is Second Card Drawn");
+    pass += assertTrue(actualCard3, expectedCard2, "smithy: Third Card From Deck is Third Card Drawn");
+    return pass > 0 ? 1 : 0;
 }
 
 int main(int argc, char** argv) {
+    int total = 3;
+    int failed = 0;
     struct gameState state;
     memset(&state, 0, sizeof(struct gameState));
     int cards[] = {adventurer, gardens, embargo, village, minion, mine, cutpurse, 
         sea_hag, tribute, smithy};
     initializeGame(1, cards, 1, &state);
+    printf("Testing smithy\n");
 
-    testSmithyHandCountIncrements(&state);
-    testSmithyDeckCountDecrements(&state);
-    testSmithyDrawsCardsFromDeck(&state);
-
+    failed += testSmithyHandCountIncrements(&state);
+    failed += testSmithyDeckCountDecrements(&state);
+    failed += testSmithyDrawsCardsFromDeck(&state);
+    printf("Passed %d out of %d Tests\n\n", total - failed, total);
     return 0;
 }

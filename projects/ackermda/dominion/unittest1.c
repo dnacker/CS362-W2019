@@ -65,7 +65,7 @@ void setupDeckWithNoCards(struct gameState* gameState) {
     putNCardsIntoDiscardFromDeck(gameState, 10);
 }
 
-void testDrawNextCardFromDeck(struct gameState* gameState) {
+int testDrawNextCardFromDeck(struct gameState* gameState) {
     struct gameState pre;
     memcpy(&pre, gameState, sizeof(struct gameState));
     int currentPlayer = gameState->whoseTurn;
@@ -75,10 +75,10 @@ void testDrawNextCardFromDeck(struct gameState* gameState) {
     int currentCardIndex = gameState->handCount[currentPlayer] - 1;
     int drawnCard = gameState->hand[currentPlayer][currentCardIndex];
     memcpy(gameState, &pre, sizeof(struct gameState));
-    assertTrue(nextCard, drawnCard, "Draw Next Card");
+    return assertTrue(nextCard, drawnCard, "drawCard: Draw Next Card");
 }
 
-void testDrawIncrementsHand(struct gameState* gameState) {
+int testDrawIncrementsHand(struct gameState* gameState) {
     struct gameState pre;
     memcpy(&pre, gameState, sizeof(struct gameState));
     int currentPlayer = gameState->whoseTurn;
@@ -86,10 +86,10 @@ void testDrawIncrementsHand(struct gameState* gameState) {
     drawCard(currentPlayer, gameState);
     int postHandCount = gameState->handCount[currentPlayer];
     memcpy(gameState, &pre, sizeof(struct gameState));
-    assertTrue(postHandCount, preHandCount + 1, "Increments Hand Size");
+    return assertTrue(postHandCount, preHandCount + 1, "drawCard: Increments Hand Size");
 }
 
-void testDrawDecrementsDeck(struct gameState* gameState) {
+int testDrawDecrementsDeck(struct gameState* gameState) {
     struct gameState pre;
     memcpy(&pre, gameState, sizeof(struct gameState));
     int currentPlayer = gameState->whoseTurn;
@@ -97,11 +97,12 @@ void testDrawDecrementsDeck(struct gameState* gameState) {
     drawCard(currentPlayer, gameState);
     int postDeckCount = gameState->deckCount[currentPlayer];
     memcpy(gameState, &pre, sizeof(struct gameState));
-    assertTrue(postDeckCount, preDeckCount - 1, "Decrements Deck");
+    return assertTrue(postDeckCount, preDeckCount - 1, "drawCard: Decrements Deck");
 }
 
-void testDrawShufflesEmptyDeck(struct gameState* gameState) {
+int testDrawShufflesEmptyDeck(struct gameState* gameState) {
     struct gameState pre;
+    int pass = 0;
     memcpy(&pre, gameState, sizeof(struct gameState));
     int currentPlayer = gameState->whoseTurn;
     int preDiscardCount = gameState->discardCount[currentPlayer];
@@ -109,12 +110,14 @@ void testDrawShufflesEmptyDeck(struct gameState* gameState) {
     int postDeckCount = gameState->deckCount[currentPlayer];
     int postDiscardCount = gameState->discardCount[currentPlayer];
     memcpy(gameState, &pre, sizeof(struct gameState));
-    assertTrue(postDeckCount, preDiscardCount - 1, "Deck Size is 1 less than Pre Discard Size");
-    assertTrue(postDiscardCount, 0, "Discard Is Empty");
+    pass += assertTrue(postDeckCount, preDiscardCount - 1, "drawCard: Deck Size is 1 less than Pre Discard Size");
+    pass += assertTrue(postDiscardCount, 0, "drawCard: Discard Is Empty");
+    return pass > 0 ? 1 : 0;
 }
 
-void testDrawAllCards(struct gameState* gameState) {
+int testDrawAllCards(struct gameState* gameState) {
     int i;
+    int pass = 0;
     struct gameState pre;
     memcpy(&pre, gameState, sizeof(struct gameState));
     int currentPlayer = gameState->whoseTurn;
@@ -128,37 +131,43 @@ void testDrawAllCards(struct gameState* gameState) {
     int postDeckCount = gameState->deckCount[currentPlayer];
     int postDiscardCount = gameState->discardCount[currentPlayer];
     memcpy(gameState, &pre, sizeof(struct gameState));
-    assertTrue(postHandCount, preHandCount + preDeckCount + preDiscardCount, "Hand Size is Sum of all Cards");
-    assertTrue(postDeckCount, 0, "Deck Size is 0");
-    assertTrue(postDiscardCount, 0, "Discard Size is 0");
+    pass += assertTrue(postHandCount, preHandCount + preDeckCount + preDiscardCount, "drawCard: Hand Size is Sum of all Cards");
+    pass += assertTrue(postDeckCount, 0, "drawCard: Deck Size is 0");
+    pass += assertTrue(postDiscardCount, 0, "drawCard: Discard Size is 0");
+    return pass > 0 ? 1 : 0;
 }
 
 int main(int argc, char** argv) {
     struct gameState gameState;
+    int total = 0;
+    int failed = 0;
     memset(&gameState, 0, sizeof(struct gameState));
     int cards[] = {adventurer, gardens, embargo, village, minion, mine, cutpurse, 
         sea_hag, tribute, smithy};
     initializeGame(1, cards, 1, &gameState);
+    printf("Testing drawCard\n");
 
-    fflush(stdout);
     setupDeckWithOneCard(&gameState);
-    testDrawIncrementsHand(&gameState);
-    testDrawDecrementsDeck(&gameState);
-    testDrawNextCardFromDeck(&gameState);
-    testDrawAllCards(&gameState);
+    failed += testDrawIncrementsHand(&gameState);
+    failed += testDrawDecrementsDeck(&gameState);
+    failed += testDrawNextCardFromDeck(&gameState);
+    failed += testDrawAllCards(&gameState);
+    total += 4;
 
-    fflush(stdout);
     setupDeckWithTenCards(&gameState);
-    testDrawIncrementsHand(&gameState);
-    testDrawDecrementsDeck(&gameState);
-    testDrawNextCardFromDeck(&gameState);
-    testDrawAllCards(&gameState);
+    failed += testDrawIncrementsHand(&gameState);
+    failed += testDrawDecrementsDeck(&gameState);
+    failed += testDrawNextCardFromDeck(&gameState);
+    failed += testDrawAllCards(&gameState);
+    total += 4;
 
-    fflush(stdout);
     setupDeckWithNoCards(&gameState);
-    testDrawIncrementsHand(&gameState);
-    testDrawShufflesEmptyDeck(&gameState);
-    testDrawAllCards(&gameState);
+    failed += testDrawIncrementsHand(&gameState);
+    failed += testDrawShufflesEmptyDeck(&gameState);
+    failed += testDrawAllCards(&gameState);
+    total += 3;
+
+    printf("Passed %d out of %d Tests\n\n", total - failed, total);
 
     return 0;
 }

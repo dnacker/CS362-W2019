@@ -26,92 +26,101 @@ void initializeState(struct gameState* state, int numSupply, int coins, int buys
     state->numBuys = buys;
 }
 
-void testBuyCardIsGained(struct gameState* state, int card) {
+int testBuyCardIsGained(struct gameState* state, int card) {
     initializeState(state, 1, 10, 1);
     int currentPlayer = state->whoseTurn;
     int preDiscardCount = state->discardCount[currentPlayer];
+    int pass = 0;
     buyCard(card, state);
     int lastDiscardIndex = state->discardCount[currentPlayer] - 1;
     int cardGained = state->discard[currentPlayer][lastDiscardIndex];
-    assertTrue(card, cardGained, "Card Gained");
-    assertTrue(state->discardCount[currentPlayer], preDiscardCount + 1, "Discard Size Increments");
+    pass += assertTrue(card, cardGained, "buyCard: Card Gained");
+    pass += assertTrue(state->discardCount[currentPlayer], preDiscardCount + 1, "buyCard: Discard Size Increments");
+    return pass > 0 ? 1 : 0;
 }
 
-void testBuyCardDecreasesBuy(struct gameState* state, int card) {
+int testBuyCardDecreasesBuy(struct gameState* state, int card) {
     initializeState(state, 1, 10, 1);
     int preBuys = state->numBuys;
     buyCard(card, state);
-    assertTrue(state->numBuys, preBuys - 1, "Buy decreases");
+    return assertTrue(state->numBuys, preBuys - 1, "buyCard: Buy decreases");
 }
 
-void testBuyCardDecreasesCoins(struct gameState* state, int card) {
+int testBuyCardDecreasesCoins(struct gameState* state, int card) {
     initializeState(state, 1, 10, 1);
     int preCoins = state->coins;
     buyCard(card, state);
-    assertTrue(state->coins, preCoins - getCost(card), "Coins decreases");
+    return assertTrue(state->coins, preCoins - getCost(card), "buyCard: Coins decreases");
 }
 
-void testBuyCardDecreasesSupply(struct gameState* state, int card) {
+int testBuyCardDecreasesSupply(struct gameState* state, int card) {
     initializeState(state, 1, 10, 1);
     int preSupply = state->supplyCount[card];
     buyCard(card, state);
-    assertTrue(state->supplyCount[card], preSupply - 1, "Supply decreases");
+    return assertTrue(state->supplyCount[card], preSupply - 1, "buyCard: Supply decreases");
 }
 
-void assertBuyCardFails(struct gameState* state, int card, char* message) {
+int assertBuyCardFails(struct gameState* state, int card, char* message) {
     int preSupply = state->supplyCount[card];
     int preBuys = state->numBuys;
     int preCoins = state->coins;
+    int pass = 0;
     buyCard(card, state);
     char buffer[256];
     memset(buffer, 0, sizeof(buffer));
     strcpy(buffer, message);
     strcat(buffer, ": Buys are unchanged");
-    assertTrue(state->numBuys, preBuys, buffer);
+    pass += assertTrue(state->numBuys, preBuys, buffer);
     memset(buffer, 0, sizeof(buffer));
     strcpy(buffer, message);
     strcat(buffer, ": Coins are unchanged");
-    assertTrue(state->coins,  preCoins, buffer);
+    pass += assertTrue(state->coins,  preCoins, buffer);
     memset(buffer, 0, sizeof(buffer));
     strcpy(buffer, message);
     strcat(buffer, ": Supply is unchanged");
-    assertTrue(state->supplyCount[card],  preSupply, buffer);
+    pass += assertTrue(state->supplyCount[card],  preSupply, buffer);
+    return pass > 0 ? 1 : 0;
 }
 
-void testBuyCardFailsNoSupply(struct gameState* state, int card) {
+int testBuyCardFailsNoSupply(struct gameState* state, int card) {
     initializeState(state, 0, 10, 1);
-    assertBuyCardFails(state, card, "No Supply");
+    return assertBuyCardFails(state, card, "buyCard: No Supply");
 }
 
-void testBuyCardFailsNotEnoughGold(struct gameState* state, int card) {
+int testBuyCardFailsNotEnoughGold(struct gameState* state, int card) {
     initializeState(state, 1, 0, 1);
-    assertBuyCardFails(state, card, "No Coins");
+    return assertBuyCardFails(state, card, "buyCard: No Coins");
 }
 
-void testBuyCardFailsNotEnoughBuys(struct gameState* state, int card) {
+int testBuyCardFailsNotEnoughBuys(struct gameState* state, int card) {
     initializeState(state, 1, 10, 0);
-    assertBuyCardFails(state, card, "No Buys");
+    return assertBuyCardFails(state, card, "buyCard: No Buys");
 }
 
 int main(int argc, char** argv) {
     int i;
+    int failed = 0;
+    int total = 0;
     struct gameState gameState;
     memset(&gameState, 0, sizeof(struct gameState));
     int cards[] = {adventurer, gardens, embargo, village, minion, mine, cutpurse, 
         sea_hag, tribute, smithy};
     initializeGame(1, cards, 1, &gameState);
-
+    printf("Testing buyCard\n");
     for (i = 0; i < treasure_map + 1; i++) {
-        testBuyCardIsGained(&gameState, i);
-        testBuyCardDecreasesBuy(&gameState, i);
-        testBuyCardDecreasesCoins(&gameState, i);
-        testBuyCardDecreasesSupply(&gameState, i);
-        testBuyCardFailsNoSupply(&gameState, i);
-        testBuyCardFailsNotEnoughBuys(&gameState, i);
+        total += 6;
+        failed += testBuyCardIsGained(&gameState, i);
+        failed += testBuyCardDecreasesBuy(&gameState, i);
+        failed += testBuyCardDecreasesCoins(&gameState, i);
+        failed += testBuyCardDecreasesSupply(&gameState, i);
+        failed += testBuyCardFailsNoSupply(&gameState, i);
+        failed += testBuyCardFailsNotEnoughBuys(&gameState, i);
         if (getCost(i) > 0) {
-            testBuyCardFailsNotEnoughGold(&gameState, i);
+            failed += testBuyCardFailsNotEnoughGold(&gameState, i);
+            total++;
         }
     }
+    printf("Passed %d out of %d Tests\n\n", total - failed, total);
 
     return 0;
 }
