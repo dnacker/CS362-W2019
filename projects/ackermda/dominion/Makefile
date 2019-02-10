@@ -39,18 +39,18 @@ cardtest: cardtest1.c cardtest2.c cardtest3.c cardtest4.c dominion.o testAssert.
 	gcc -o cardtest3 cardtest3.c dominion.o testAssert.o rngs.o $(CFLAGS)
 	gcc -o cardtest4 cardtest4.c dominion.o testAssert.o rngs.o $(CFLAGS)
 
-runtests: unittest cardtest 
-	echo "Unit Test Results" > unittestresult.out
-	./unittest1 &>> unittestresult.out
-	./unittest2 &>> unittestresult.out
-	./unittest3 &>> unittestresult.out
-	./unittest4 &>> unittestresult.out
-	./cardtest1 &>> unittestresult.out
-	./cardtest2 &>> unittestresult.out
-	./cardtest3 &>> unittestresult.out
-	./cardtest4 &>> unittestresult.out
-	gcov -b -c dominion.c >> unittestresult.out
-	cat dominion.c.gcov >> unittestresult.out
+unittestresults: unittest cardtest 
+	echo "Unit Test Results" > unittestresults.out
+	./unittest1 &>> unittestresults.out
+	./unittest2 &>> unittestresults.out
+	./unittest3 &>> unittestresults.out
+	./unittest4 &>> unittestresults.out
+	./cardtest1 &>> unittestresults.out
+	./cardtest2 &>> unittestresults.out
+	./cardtest3 &>> unittestresults.out
+	./cardtest4 &>> unittestresults.out
+	gcov -b -c dominion.c >> unittestresults.out
+	cat dominion.c.gcov >> unittestresults.out
 
 player: player.c interface.o
 	gcc -o player player.c -g  dominion.o rngs.o interface.o $(CFLAGS)
