@@ -4,9 +4,12 @@
 *.gcno
 *.gcov
 *.dSYM
-playdom*
-player*
-badTestDrawCard*
+playdom
+playdom.exe
+player
+player.exe
+badTestDrawCard
+badTestDrawCard.exe
 
 # ignores for clang-format
 .clang-format
