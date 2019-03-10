@@ -1,0 +1,7 @@
+*.exe
+*.stackdump
+*.gcda
+*.gcno
+*.o
+*.gcov
+**/.vscode
