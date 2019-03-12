@@ -1,12 +1,10 @@
-
-
 import junit.framework.TestCase;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.stream.IntStream;
+import java.util.List;
 
 //You can use this as a skeleton for your 3 different test approach
 //It is an optional to use this file, you can generate your own test file(s) to test the target function!
@@ -40,8 +38,114 @@ public class UrlValidatorTest extends TestCase {
 
    private static String[][] elements = {schemes, prefixes, tlds, ports, paths, queries};
 
+   /**
+    * Default schemes.
+    */
+   private static String[] defaultSchemes = { "http", "https", "ftp" };
+
+   /**
+    * Http only scheme.
+    */
+   private static String[] httpScheme = { "http" };
+
+   /**
+    * A list of characters that can be in a scheme. These are defined here https://tools.ietf.org/html/rfc3986#section-3.1.
+    */
+   private static List<Character> schemeCharacters;
+
+   /**
+    * A default UrlValidator. Valid schemes are http, https, and ftp.
+    */
+   private UrlValidator defaultUrlValidator;
+   /**
+    * A UrlValidator with only "http" as the valid scheme.
+    */
+   private UrlValidator httpUrlValidator;
+   /**
+    * A UrlValidator that allows all schemes.
+    */
+   private UrlValidator allowAllSchemesValidator;
+
    public UrlValidatorTest(String testName) {
       super(testName);
+   }
+
+   @Override
+   public void setUp() {
+      httpUrlValidator = new UrlValidator(httpScheme);
+      defaultUrlValidator = new UrlValidator();
+      allowAllSchemesValidator = new UrlValidator(UrlValidator.ALLOW_ALL_SCHEMES);
+      schemeCharacters = new ArrayList<>();
+      for (char c = 'a'; c <= 'z'; c++) {
+         schemeCharacters.add(c);
+      }
+      schemeCharacters.add('+');
+      schemeCharacters.add('-');
+      schemeCharacters.add('.');
+      for (char c = '0'; c <= '9'; c++) {
+         schemeCharacters.add(c);
+      }
+   }
+
+   public void testSchemes() {
+      String urlEnd = "://www.google.com";
+      // http should be valid for all
+      boolean httpDone = false;
+      boolean httpsDone = false;
+      boolean ftpDone = false;
+
+      do {
+         String url = generateValidScheme() + urlEnd;
+         if (url.startsWith("http://")) {
+            assertTrue(httpUrlValidator.isValid(url));
+            assertTrue(defaultUrlValidator.isValid(url));
+            httpDone = true;
+         } else if (url.startsWith("https://")) {
+            assertFalse(httpUrlValidator.isValid(url));
+            assertTrue(defaultUrlValidator.isValid(url));
+            httpsDone = true;
+         } else if (url.startsWith("ftp://")) {
+            assertFalse(httpUrlValidator.isValid(url));
+            assertTrue(defaultUrlValidator.isValid(url));
+            ftpDone = true;
+         } else {
+            assertFalse(httpUrlValidator.isValid(url));
+            assertFalse(defaultUrlValidator.isValid(url));
+         }
+         assertTrue(allowAllSchemesValidator.isValid(url));
+      } while (!httpDone && !httpsDone && !ftpDone);
+   }
+
+   /**
+    * Generates a valid url scheme. Definition: ALPHA *( ALPHA / DIGIT / "+" / "-" / "." )
+    * @return a valid url scheme.
+    */
+   public String generateValidScheme() {
+      StringBuilder sb = new StringBuilder();
+      int length = (int)(Math.random() * 10 + 1); // generate a random length from 1 - 10
+
+      // First character must be alphabetic
+      char first;
+      do {
+         first = getRandomCharacterFromScheme();
+      } while (!Character.isAlphabetic(first));
+      sb.append(first);
+
+      for (int i = 0; i < length - 1; i++) {
+         // Random character from schemeCharacters list.
+         sb.append(getRandomCharacterFromScheme());
+      }
+
+      return sb.toString();
+   }
+
+   private char getRandomCharacterFromScheme() {
+      char randomChar = schemeCharacters.get((int)(Math.random()* schemeCharacters.size()));
+      boolean isUpperCase = (int) (Math.random() * 2) == 0;
+      if (isUpperCase && Character.isAlphabetic(randomChar)) {
+         randomChar = Character.toUpperCase(randomChar);
+      }
+      return randomChar;
    }
 
    public void testManualTest()
