@@ -225,7 +225,6 @@ public class UrlValidatorTest extends TestCase {
          System.out.println("File writer error. Not all invalid Urls will be written to file.");
          e.printStackTrace();
       }
-      invalids = new StringBuilder();
    }
    
    public void testIsValid() {
@@ -263,7 +262,10 @@ public class UrlValidatorTest extends TestCase {
             invalids.append(string + "\n");
          }
          string = getNextCombination(bounds ,counters);
-         if (invalids.length() >= 10000) { writeInvalidCases(invalids, logger); }
+         if (invalids.length() >= 10000) {
+            writeInvalidCases(invalids, logger);
+            invalids = new StringBuilder();
+         }
       }
 
       writeInvalidCases(invalids, logger);
