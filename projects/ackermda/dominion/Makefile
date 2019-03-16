@@ -82,4 +82,31 @@ cardtest4: cardtest4.c dominion.o rngs.o testAssert.o
 	gcc -o cardtest4 -g  cardtest4.c dominion.o rngs.o testAssert.o $(CFLAGS)
 
 clean:
-	rm -f *.o *.exe playdom player *.gcov *.gcda *.gcno *.so *.out testDrawCard
+	rm -f *.o playdom.exe playdom player player.exe  *.gcov *.gcda *.gcno *.so *.out testDrawCard testDrawCard.exe
+
+random: random.c
+	gcc -c random.c $(CFLAGS)
+
+assertEquals: assertEquals.c
+	gcc -c assertEquals.c $(CFLAGS)
+
+randomtestcard1: randomtestcard1.c dominion.o rngs.o random assertEquals
+	gcc -o randomtestcard1 -g  randomtestcard1.c dominion.o rngs.o random.o assertEquals.o $(CFLAGS)
+
+randomtestcard2: randomtestcard2.c dominion.o rngs.o random assertEquals
+	gcc  -o randomtestcard2 -g  randomtestcard2.c dominion.o rngs.o random.o assertEquals.o $(CFLAGS)
+
+randomtestadventurer: randomtestadventurer.c dominion.o rngs.o random assertEquals
+	gcc  -o randomtestadventurer -g  randomtestadventurer.c dominion.o rngs.o random.o assertEquals.o $(CFLAGS)
+
+randomtests: randomtestcard1 randomtestcard2 randomtestadventurer
+	echo "Testing adventurer" &> randomtestresult.out
+	./randomtestadventurer >> randomtestresult.out
+	echo "Testing council room" >> randomtestresult.out
+	./randomtestcard1 >> randomtestresult.out
+	echo "Testing village" >> randomtestresult.out
+	./randomtestcard2 >> randomtestresult.out
+	gcov dominion.c >> randomtestresult.out
+	gcov -b dominion.c >> randomtestresult.out
+	gcov -f dominion.c >> randomtestresult.out
+	cat dominion.c.gcov >> randomtestresult.out

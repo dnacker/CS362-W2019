@@ -668,6 +668,7 @@ int smithyCardEffect(int currentPlayer, struct gameState *state) {
  * All cards drawn that are no treasure are discarded.
  */
 int adventurerCardEffect(int currentPlayer, struct gameState *state) {
+  int j;
   int treasureDrawn = 0;
   int cardDrawn = 0;
   int tempIndex = 0;
@@ -683,6 +684,11 @@ int adventurerCardEffect(int currentPlayer, struct gameState *state) {
    */
   while (treasureDrawn < 2) {
     if (state->deckCount[currentPlayer] < 1) {
+      for (j = 0; j < state->discardCount[currentPlayer]; j++) {
+        state->deck[currentPlayer][j] = state->discard[currentPlayer][j];
+      }
+      state->deckCount[currentPlayer] = state->discardCount[currentPlayer];
+      state->discardCount[currentPlayer] = 0;
       shuffle(currentPlayer, state);
     }
     drawCard(currentPlayer, state);
@@ -691,12 +697,10 @@ int adventurerCardEffect(int currentPlayer, struct gameState *state) {
       treasureDrawn++;
     } else {
       tempHand[tempIndex++] = cardDrawn;
-      state->handCount[currentPlayer]--;
     }
   }
-  while (tempIndex > 1) {
-    state->discard[currentPlayer][state->discardCount[currentPlayer]++] = tempHand[tempIndex - 1];
-    tempIndex--;
+  while (tempIndex > 0) {
+    state->discard[currentPlayer][state->discardCount[currentPlayer]++] = tempHand[tempIndex--];
   }
   return 0;
 }
@@ -1291,14 +1295,12 @@ int cardEffect(int card, int choice1, int choice2, int choice3, struct gameState
       //no second treasure_map found in hand
       return -1;
     }
-
 	discardCard(handPos, currentPlayer, state, trashFlag);
   return result;
 }
 
 int discardCard(int handPos, int currentPlayer, struct gameState *state, int trashFlag)
 {
-	
   //if card is not trashed, added to Played pile 
   if (trashFlag < 1)
     {
@@ -1306,7 +1308,6 @@ int discardCard(int handPos, int currentPlayer, struct gameState *state, int tra
       state->playedCards[state->playedCardCount] = state->hand[currentPlayer][handPos]; 
       state->playedCardCount++;
     }
-	
   //set played card to -1
   state->hand[currentPlayer][handPos] = -1;
 	
@@ -1330,7 +1331,6 @@ int discardCard(int handPos, int currentPlayer, struct gameState *state, int tra
       //reduce number of cards in hand
       state->handCount[currentPlayer]--;
     }
-	
   return 0;
 }
 
