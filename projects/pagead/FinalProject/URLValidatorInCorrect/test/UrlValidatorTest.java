@@ -5,6 +5,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 //You can use this as a skeleton for your 3 different test approach
 //It is an optional to use this file, you can generate your own test file(s) to test the target function!
@@ -66,6 +68,16 @@ public class UrlValidatorTest extends TestCase {
     */
    private UrlValidator allowAllSchemesValidator;
 
+   /**
+    * A regex pattern matcher for a valid scheme.
+    */
+   private static final Pattern VALID_SCHEME = Pattern.compile("^([a-z][a-z0-9+\\-.]*)");
+
+   /**
+    * The number of random tests to run.
+    */
+   private static final int RANDOM_TEST_COUNT = 1000;
+
    public UrlValidatorTest(String testName) {
       super(testName);
    }
@@ -87,40 +99,48 @@ public class UrlValidatorTest extends TestCase {
       }
    }
 
-   public void testSchemes() {
+   /**
+    * Tests random valid schemes.
+    */
+   public void testValidSchemes() {
       String urlEnd = "://www.google.com";
       // http should be valid for all
-      boolean httpDone = false;
-      boolean httpsDone = false;
-      boolean ftpDone = false;
 
-      do {
+      for (int i = 0; i < RANDOM_TEST_COUNT; i++) {
          String url = generateValidScheme() + urlEnd;
          if (url.startsWith("http://")) {
             assertTrue(httpUrlValidator.isValid(url));
             assertTrue(defaultUrlValidator.isValid(url));
-            httpDone = true;
          } else if (url.startsWith("https://")) {
             assertFalse(httpUrlValidator.isValid(url));
             assertTrue(defaultUrlValidator.isValid(url));
-            httpsDone = true;
          } else if (url.startsWith("ftp://")) {
             assertFalse(httpUrlValidator.isValid(url));
             assertTrue(defaultUrlValidator.isValid(url));
-            ftpDone = true;
          } else {
             assertFalse(httpUrlValidator.isValid(url));
             assertFalse(defaultUrlValidator.isValid(url));
          }
          assertTrue(allowAllSchemesValidator.isValid(url));
-      } while (!httpDone && !httpsDone && !ftpDone);
+      }
+   }
+
+   /**
+    * Tests random invalid schemes.
+    */
+   public void testInvalidSchemes() {
+      String urlEnd = "://www.google.com";
+      for (int i = 0; i < RANDOM_TEST_COUNT; i++) {
+         String url = generateInvalidScheme() + urlEnd;
+         assertFalse(allowAllSchemesValidator.isValid(url));
+      }
    }
 
    /**
     * Generates a valid url scheme. Definition: ALPHA *( ALPHA / DIGIT / "+" / "-" / "." )
     * @return a valid url scheme.
     */
-   public String generateValidScheme() {
+   private String generateValidScheme() {
       StringBuilder sb = new StringBuilder();
       int length = (int)(Math.random() * 10 + 1); // generate a random length from 1 - 10
 
@@ -131,12 +151,36 @@ public class UrlValidatorTest extends TestCase {
       } while (!Character.isAlphabetic(first));
       sb.append(first);
 
-      for (int i = 0; i < length - 1; i++) {
+      for (; length > 0; length--) {
          // Random character from schemeCharacters list.
          sb.append(getRandomCharacterFromScheme());
       }
 
       return sb.toString();
+   }
+
+   /**
+    * Generates an invalid url scheme.
+    * @return an invalid url scheme.
+    */
+   private String generateInvalidScheme() {
+      StringBuilder sb = new StringBuilder();
+      int length = (int)(Math.random() * 10 + 1);
+      String result;
+      boolean isInvalid = false;
+      do {
+         for (; length >= 0; length--) {
+            sb.append((char) (Math.random() * Character.MAX_VALUE));
+         }
+
+         result = sb.toString();
+         if (VALID_SCHEME.matcher(result).matches()) {
+            sb = new StringBuilder();
+         } else {
+            isInvalid = true;
+         }
+      } while (!isInvalid);
+      return result;
    }
 
    private char getRandomCharacterFromScheme() {
@@ -154,18 +198,6 @@ public class UrlValidatorTest extends TestCase {
       UrlValidator validator = new UrlValidator(UrlValidator.ALLOW_ALL_SCHEMES + UrlValidator.NO_FRAGMENTS);
       System.out.println(validator.isValid("http://www.google.com/"));
    }
-
-   public void testYourFirstPartition()
-   {
-	 //You can use this function to implement your First Partition testing	   
-
-   }
-   
-   public void testYourSecondPartition(){
-		 //You can use this function to implement your Second Partition testing	   
-
-   }
-   //You need to create more test cases for your Partitions if you need to
 
    private String getNextCombination(int[] bounds, int[] counters) {
       StringBuilder string = new StringBuilder();
