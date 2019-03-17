@@ -5,6 +5,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -51,24 +52,6 @@ public class UrlValidatorTest extends TestCase {
    private static String[] httpScheme = { "http" };
 
    /**
-    * A list of characters that can be in a scheme. These are defined here https://tools.ietf.org/html/rfc3986#section-3.1.
-    */
-   private static List<Character> schemeCharacters;
-
-   /**
-    * A default UrlValidator. Valid schemes are http, https, and ftp.
-    */
-   private UrlValidator defaultUrlValidator;
-   /**
-    * A UrlValidator with only "http" as the valid scheme.
-    */
-   private UrlValidator httpUrlValidator;
-   /**
-    * A UrlValidator that allows all schemes.
-    */
-   private UrlValidator allowAllSchemesValidator;
-
-   /**
     * A regex pattern matcher for a valid scheme.
     */
    private static final Pattern VALID_SCHEME = Pattern.compile("^([a-z][a-z0-9+\\-.]*)");
@@ -78,36 +61,37 @@ public class UrlValidatorTest extends TestCase {
     */
    private static final int RANDOM_TEST_COUNT = 1000;
 
+   /**
+    * A random url part generator.
+    */
+   private static final RandomUrlPartGenerator randomUrlPartGenerator = new RandomUrlPartGenerator();
+
+   /**
+    * A default UrlValidator. Valid schemes are http, https, and ftp.
+    */
+   private UrlValidator defaultUrlValidator = new UrlValidator();
+   /**
+    * A UrlValidator with only "http" as the valid scheme.
+    */
+   private UrlValidator httpUrlValidator = new UrlValidator(httpScheme);
+   /**
+    * A UrlValidator that allows all schemes.
+    */
+   private UrlValidator allowAllSchemesValidator = new UrlValidator(UrlValidator.ALLOW_ALL_SCHEMES);
+
    public UrlValidatorTest(String testName) {
       super(testName);
-   }
-
-   @Override
-   public void setUp() {
-      httpUrlValidator = new UrlValidator(httpScheme);
-      defaultUrlValidator = new UrlValidator();
-      allowAllSchemesValidator = new UrlValidator(UrlValidator.ALLOW_ALL_SCHEMES);
-      schemeCharacters = new ArrayList<>();
-      for (char c = 'a'; c <= 'z'; c++) {
-         schemeCharacters.add(c);
-      }
-      schemeCharacters.add('+');
-      schemeCharacters.add('-');
-      schemeCharacters.add('.');
-      for (char c = '0'; c <= '9'; c++) {
-         schemeCharacters.add(c);
-      }
    }
 
    /**
     * Tests random valid schemes.
     */
    public void testValidSchemes() {
-      String urlEnd = "://www.google.com";
+      final String urlEnd = "://www.google.com";
       // http should be valid for all
 
       for (int i = 0; i < RANDOM_TEST_COUNT; i++) {
-         String url = generateValidScheme() + urlEnd;
+         final String url = randomUrlPartGenerator.getValidScheme() + urlEnd;
          if (url.startsWith("http://")) {
             assertTrue(httpUrlValidator.isValid(url));
             assertTrue(defaultUrlValidator.isValid(url));
@@ -129,74 +113,47 @@ public class UrlValidatorTest extends TestCase {
     * Tests random invalid schemes.
     */
    public void testInvalidSchemes() {
-      String urlEnd = "://www.google.com";
+      final String urlEnd = "://www.google.com";
       for (int i = 0; i < RANDOM_TEST_COUNT; i++) {
-         String url = generateInvalidScheme() + urlEnd;
+         final String url = randomUrlPartGenerator.getInvalidScheme() + urlEnd;
+         assertFalse(httpUrlValidator.isValid(url));
+         assertFalse(defaultUrlValidator.isValid(url));
          assertFalse(allowAllSchemesValidator.isValid(url));
       }
    }
 
    /**
-    * Generates a valid url scheme. Definition: ALPHA *( ALPHA / DIGIT / "+" / "-" / "." )
-    * @return a valid url scheme.
+    * Tests random valid authorities.
     */
-   private String generateValidScheme() {
+   public void testValidAuthorities() {
+      final String urlStart = "http://";
       StringBuilder sb = new StringBuilder();
-      int length = (int)(Math.random() * 10 + 1); // generate a random length from 1 - 10
-
-      // First character must be alphabetic
-      char first;
-      do {
-         first = getRandomCharacterFromScheme();
-      } while (!Character.isAlphabetic(first));
-      sb.append(first);
-
-      for (; length > 0; length--) {
-         // Random character from schemeCharacters list.
-         sb.append(getRandomCharacterFromScheme());
+      for (int i = 0; i < RANDOM_TEST_COUNT; i++) {
+         final String url = urlStart + randomUrlPartGenerator.getValidAuthority();
+         assertTrue(httpUrlValidator.isValid(url));
+         assertTrue(defaultUrlValidator.isValid(url));
+         assertTrue(allowAllSchemesValidator.isValid(url));
       }
-
-      return sb.toString();
    }
 
    /**
-    * Generates an invalid url scheme.
-    * @return an invalid url scheme.
+    * Tests random invalid authorities.
     */
-   private String generateInvalidScheme() {
+   public void testInvalidAuthorities() {
+      final String urlStart = "http://";
       StringBuilder sb = new StringBuilder();
-      int length = (int)(Math.random() * 10 + 1);
-      String result;
-      boolean isInvalid = false;
-      do {
-         for (; length >= 0; length--) {
-            sb.append((char) (Math.random() * Character.MAX_VALUE));
-         }
-
-         result = sb.toString();
-         if (VALID_SCHEME.matcher(result).matches()) {
-            sb = new StringBuilder();
-         } else {
-            isInvalid = true;
-         }
-      } while (!isInvalid);
-      return result;
-   }
-
-   private char getRandomCharacterFromScheme() {
-      char randomChar = schemeCharacters.get((int)(Math.random()* schemeCharacters.size()));
-      boolean isUpperCase = (int) (Math.random() * 2) == 0;
-      if (isUpperCase && Character.isAlphabetic(randomChar)) {
-         randomChar = Character.toUpperCase(randomChar);
+      for (int i = 0; i < RANDOM_TEST_COUNT; i++) {
+         final String url = urlStart + randomUrlPartGenerator.getInvalidAuthority();
+         assertFalse(httpUrlValidator.isValid(url));
+         assertFalse(defaultUrlValidator.isValid(url));
+         assertFalse(allowAllSchemesValidator.isValid(url));
       }
-      return randomChar;
    }
 
    public void testManualTest()
    {
-//You can use this function to implement your manual testing	   
-      UrlValidator validator = new UrlValidator(UrlValidator.ALLOW_ALL_SCHEMES + UrlValidator.NO_FRAGMENTS);
-      System.out.println(validator.isValid("http://www.google.com/"));
+//You can use this function to implement your manual testing
+      assertTrue(httpUrlValidator.isValid("http://www.google.com/"));
    }
 
    private String getNextCombination(int[] bounds, int[] counters) {
