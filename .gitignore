@@ -17,3 +17,7 @@ badTestDrawCard.exe
 
 # ignores for idea
 .idea
+*.iml
+
+# ignores for test output
+*.out
